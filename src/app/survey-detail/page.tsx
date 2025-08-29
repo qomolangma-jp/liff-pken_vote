@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, Suspense } from "react";
 import axios from "axios";
-import styles from "../../components/TopPage.module.css";
+import styles from "@/components/TopPage.module.css";
 import { useLineUser } from "@/hooks/useLineUser";
 import { useSearchParams } from "next/navigation";
 import CryptoJS from "crypto-js";

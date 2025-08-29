@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
-import styles from './TopPage.module.css';
+import styles from "@/components/TopPage.module.css";
+
 import Link from 'next/link';
 import { useLineUser } from "@/hooks/useLineUser";
 
