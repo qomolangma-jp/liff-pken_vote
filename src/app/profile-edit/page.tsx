@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+// import axios from "axios"; // 未使用のため削除
 import styles from "../../components/TopPage.module.css";
 import { useLineUser } from "@/hooks/useLineUser";
 
-const WP_BASE_URL = process.env.NEXT_PUBLIC_WP_BASE_URL;
+// const WP_BASE_URL = process.env.NEXT_PUBLIC_WP_BASE_URL; // 未使用のため削除
 
 export default function ProfileEditPage() {
   const { user, loading } = useLineUser();
