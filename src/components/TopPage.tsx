@@ -2,13 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
-import styles from "@/components/TopPage.module.css";
-
+import styles from './TopPage.module.css';
 import Link from 'next/link';
 import { useLineUser } from "@/hooks/useLineUser";
-
-
-const WP_BASE_URL = process.env.NEXT_PUBLIC_WP_BASE_URL;
 
 const grades = [
   { label: '1年', value: 1 },
@@ -19,6 +15,7 @@ const classes = Array.from({ length: 9 }, (_, i) => ({ label: `${i + 1}組`, val
 
 export default function TopPage() {
   const { user, loading } = useLineUser();
+  console.log('User:', user);
 
   const [form, setForm] = useState({
     grade: '',
@@ -33,20 +30,27 @@ export default function TopPage() {
 
   // ...user, loadingはuseLineUserから取得するため、fetchUserやsetUser/setLoadingのローカル管理は不要...
 
-  const handleChange = e => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const sendData = {
       ...form,
       grade: Number(form.grade),
-      class: Number(form.class)
+      class: Number(form.class),
+      line_id: user?.line_id || ''
     };
-    const secret = process.env.NEXT_PUBLIC_CUR_SHARED_SECRET;
-    const jsonBody = JSON.stringify(sendData);
-    const signature = CryptoJS.HmacSHA256(jsonBody, secret).toString(CryptoJS.enc.Hex);
+
+    const rawBody = JSON.stringify(sendData); // bodyはAPIに送るオブジェクト
+    const signature = CryptoJS.HmacSHA256(
+      rawBody,
+      process.env.NEXT_PUBLIC_CUR_SHARED_SECRET || ""
+    ).toString();    
+
+    console.log("生成された署名:", signature);
+    console.log("NEXT_PUBLIC_CUR_SHARED_SECRET:", process.env.NEXT_PUBLIC_CUR_SHARED_SECRET);
 
     await axios.post(
       '/wp-api/custom/v1/register',
@@ -133,10 +137,13 @@ export default function TopPage() {
   // 未ログイン時は登録フォーム
   return (
     <main className={styles.main}>
-      <form className={styles.formCard} onSubmit={handleSubmit}>
-        <div className={styles.apiInfo}>
-          API: {WP_BASE_URL}
+      {/* line_idの表示 */}
+      {user && user.line_id && (
+        <div style={{ margin: '1em', color: '#1976d2', fontWeight: 'bold' }}>
+          LINE ID: {user.line_id}
         </div>
+      )}
+      <form className={styles.formCard} onSubmit={handleSubmit}>
         <h2 className={styles.formTitle}>ユーザー登録</h2>
         <div className={styles.formGroup}>
           <label className={styles.formLabel}>学年</label>
@@ -187,31 +194,4 @@ export default function TopPage() {
   );
 }
 
-function SurveyHistory({ userId }) {
-  const [history, setHistory] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    axios.get(`${WP_BASE_URL}/wp-json/custom/v1/survey_history`, {
-      params: { user_id: userId }
-    })
-      .then(res => setHistory(res.data))
-      .catch(() => setHistory([]))
-      .finally(() => setLoading(false));
-  }, [userId]);
-
-  if (loading) return <div className={styles.historyLoading}>読み込み中...</div>;
-  if (!history || history.length === 0) return <div className={styles.historyEmpty}>履歴はありません。</div>;
-
-  return (
-    <ul className={styles.historyList}>
-      {history.map((item, idx) => (
-        <li key={idx} className={styles.historyItem}>
-          <Link href={`/survey-detail?id=${item.id}`}>
-            {item.title}（{item.date}）
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
+// 不要なSurveyHistory関数の残骸を完全に削除
